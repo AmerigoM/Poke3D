@@ -22,6 +22,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
+        
+        // Enable lighting
+        sceneView.autoenablesDefaultLighting = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -35,7 +38,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             configuration.trackingImages = imagesToTrack
             
             // which is the maximum number of images to track?
-            configuration.maximumNumberOfTrackedImages = 1
+            configuration.maximumNumberOfTrackedImages = 2
         }
 
         // Run the view's session
@@ -56,24 +59,42 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
         let node = SCNNode()
         
-        // if the anchor that was detected was a image anchor...
-        if let imageAnchor = anchor as? ARImageAnchor {
-            // create a plane for the detected card and a node for it
-            let plane = SCNPlane(
-                width: imageAnchor.referenceImage.physicalSize.width,
-                height: imageAnchor.referenceImage.physicalSize.height
-            )
+        DispatchQueue.main.async {
+            // if the anchor that was detected was a image anchor...
+            if let imageAnchor = anchor as? ARImageAnchor {
+                
+                
+                
+                // create a plane for the detected card and a node for it
+                let plane = SCNPlane(
+                    width: imageAnchor.referenceImage.physicalSize.width,
+                    height: imageAnchor.referenceImage.physicalSize.height
+                )
+                
+                // the object plane is transparent
+                plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0.5)
+                
+                let planeNode = SCNNode()
+                planeNode.geometry = plane
+                
+                // planes are vertical by default: we have to rotate it by 90 degrees
+                planeNode.eulerAngles.x = -Float.pi/2
+                
+                node.addChildNode(planeNode)
+                
+                // if the card detected is the one called eevee-card...
+                if imageAnchor.referenceImage.name == "eevee-card" {
+                    // create the pokemon on top of the plane
+                    if let pokeScene = SCNScene(named: "art.scnassets/eevee.scn") {
+                        if let pokeNode = pokeScene.rootNode.childNodes.first {
+                            pokeNode.eulerAngles.x = Float.pi/2
+                            planeNode.addChildNode(pokeNode)
+                        }
+                    }
+                }
+                
+            }
             
-            // the object plane is transparent
-            plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0.5)
-            
-            let planeNode = SCNNode()
-            planeNode.geometry = plane
-            
-            // planes are vertical by default: we have to rotate it by 90 degrees
-            planeNode.eulerAngles.x = -Float.pi/2
-            
-            node.addChildNode(planeNode)
         }
         
         return node
