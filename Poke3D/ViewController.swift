@@ -64,8 +64,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                 height: imageAnchor.referenceImage.physicalSize.height
             )
             
+            // the object plane is transparent
+            plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0.5)
+            
             let planeNode = SCNNode()
             planeNode.geometry = plane
+            
+            // planes are vertical by default: we have to rotate it by 90 degrees
+            planeNode.eulerAngles.x = -Float.pi/2
             
             node.addChildNode(planeNode)
         }
