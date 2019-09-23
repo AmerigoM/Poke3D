@@ -22,19 +22,21 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
-        
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
-        
-        // Set the scene to the view
-        sceneView.scene = scene
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
+        let configuration = ARImageTrackingConfiguration()
+        
+        // Tell the app about the images it should track
+        if let imagesToTrack = ARReferenceImage.referenceImages(inGroupNamed: "Pokemon Cards", bundle: Bundle.main) {
+            configuration.trackingImages = imagesToTrack
+            
+            // which is the maximum number of images to track?
+            configuration.maximumNumberOfTrackedImages = 1
+        }
 
         // Run the view's session
         sceneView.session.run(configuration)
@@ -47,29 +49,28 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
 
-    // MARK: - ARSCNViewDelegate
+    // MARK: - ARSCNVIEW DELEGATE SECTION
     
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
+    // the anchor is the thing that was detected (in our case would be the image that was detected)
+    // and the returning node is a 3D object that will be provided in response to detecting the anchor
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
         let node = SCNNode()
-     
+        
+        // if the anchor that was detected was a image anchor...
+        if let imageAnchor = anchor as? ARImageAnchor {
+            // create a plane for the detected card and a node for it
+            let plane = SCNPlane(
+                width: imageAnchor.referenceImage.physicalSize.width,
+                height: imageAnchor.referenceImage.physicalSize.height
+            )
+            
+            let planeNode = SCNNode()
+            planeNode.geometry = plane
+            
+            node.addChildNode(planeNode)
+        }
+        
         return node
     }
-*/
     
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
-        
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
-    }
 }
